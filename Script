@@ -1,0 +1,66 @@
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local antiFlingHandler = nil
+local antiFlingEnabled = true -- VariÃ¡vel para controlar se o anti-fling estÃ¡ habilitado ou desabilitado
+
+local function EnableAntiFling()
+    antiFlingHandler = RunService.Stepped:Connect(function()
+        for _, CoPlayer in pairs(Players:GetPlayers()) do
+            if CoPlayer ~= LocalPlayer and CoPlayer.Character then
+                for _, part in pairs(CoPlayer.Character:GetChildren()) do
+                    if part:IsA("BasePart") or part:IsA("Part") or part.Name == "HumanoidRootPart" then
+                        part.CanCollide = false
+                        part.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+                        part.Velocity = Vector3.new(0, 0, 0)
+                        part.RotVelocity = Vector3.new(0, 0, 0)
+                    end
+                end
+            end
+        end
+    end)
+
+    game.StarterGui:SetCore("SendNotification", {
+        Title = "Beto Anti-fling",
+        Text = "Activated",
+        Duration = 5,
+    })
+
+    return antiFlingHandler
+end
+
+local function DisableAntiFling()
+    if antiFlingHandler then
+        antiFlingHandler:Disconnect()
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "Beto Anti-fling",
+            Text = "Deactivated",
+            Duration = 5,
+        })
+    end
+
+    -- LÃ³gica adicional para reverter as mudanÃ§as feitas pelo anti-fling, se necessÃ¡rio
+end
+
+-- FunÃ§Ã£o para ativar o anti-fling novamente
+local function ReenableAntiFling()
+    if not antiFlingEnabled then
+        EnableAntiFling()
+        antiFlingEnabled = true
+    end
+end
+
+-- Habilitar o anti-fling inicialmente
+if antiFlingEnabled then
+    EnableAntiFling()
+end
+
+-- Processamento dos comandos diretamente no evento de chat do jogador
+Players.LocalPlayer.Chatted:Connect(function(message)
+    if message == ";d" then
+        DisableAntiFling()
+        antiFlingEnabled = false
+    elseif message == ";a" then
+        ReenableAntiFling()
+    end
+end)
